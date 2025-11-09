@@ -1,0 +1,28 @@
+# Hedera Network
+HEDERA_NETWORK=testnet
+HEDERA_ACCOUNT_ID=0.0.xxxxx
+HEDERA_PRIVATE_KEY=302e020100300506032b657004220420...
+
+# HCS Topic (leave empty to auto-create)
+HCS_TOPIC_ID=
+
+# Custodial Accounts (for demo, can all be the same)
+ESCROW_ACCOUNT_ID=0.0.xxxxx
+BUYER_ACCOUNT_ID=0.0.xxxxx
+FARMER_ACCOUNT_ID=0.0.xxxxx
+
+# HTS Token (leave empty to auto-create)
+ESCROW_TOKEN_ID=
+
+# AI
+OPENAI_API_KEY=sk-proj-...
+
+# SMS Gateway
+SMS_MODE=stub
+AT_USERNAME=sandbox
+AT_API_KEY=your_key_here
+AT_SENDER=AgroTrack
+
+# Server
+PORT=3000
+MIRROR_NODE_URL=https://testnet.mirrornode.hedera.com/api/v1

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTrack-Lite v2.0 - Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #1a202c;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event {
+            padding: 12px;
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .event.risk { border-left-color: #f56565; }
+        .event.market { border-left-color: #48bb78; }
+        .event.escrow { border-left-color: #ed8936; }
+        .event.settlement { border-left-color: #9f7aea; }
+
+        .event-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .event-time {
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .event-data {
+            font-size: 14px;
+            color: #4a5568;
+            word-break: break-word;
+        }
+
+        .agent-tree {
+            position: relative;
+        }
+
+        .agent-node {
+            padding: 16px;
+            background: #edf2f7;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 2px solid #cbd5e0;
+        }
+
+        .agent-node.active {
+            background: #d6f5d6;
+            border-color: #48bb78;
+        }
+
+        .agent-node.autonomous {
+            border-left: 4px solid #48bb78;
+        }
+
+        .agent-node.return-byte {
+            border-left: 4px solid #ed8936;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .badge.autonomous {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.return-byte {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .stat {
+            text-align: center;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const API_URL = 'http://localhost:3000';
+
+        // Helper function to parse Hedera timestamp
+        function parseHederaTimestamp(timestamp) {
+            if (!timestamp) return new Date();
+            
+            // Hedera timestamp format: "1234567890.123456789"
+            // First part is seconds, second part is nanoseconds
+            const [seconds, nanos] = timestamp.split('.');
+            const milliseconds = parseInt(seconds) * 1000 + parseInt(nanos.slice(0, 3));
+            return new Date(milliseconds);
+        }
+
+        function formatTime(timestamp) {
+            try {
+                const date = parseHederaTimestamp(timestamp);
+                return date.toLocaleTimeString();
+            } catch (e) {
+                return 'Unknown time';
+            }
+        }
+
+        function Dashboard() {
+            const [messages, setMessages] = useState([]);
+            const [stats, setStats] = useState({
+                totalTransactions: 0,
+                activeAgents: 5,
+                successRate: 0
+            });
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetchMessages();
+                const interval = setInterval(fetchMessages, 5000);
+                return () => clearInterval(interval);
+            }, []);
+
+            async function fetchMessages() {
+                try {
+                    const response = await fetch(`${API_URL}/api/messages`);
+                    const data = await response.json();
+                    setMessages(data.messages || []);
+                    
+                    // Calculate stats
+                    const refs = new Set(data.messages.map(m => m.ref).filter(Boolean));
+                    const settlements = data.messages.filter(m => m.event === 'settlement_complete');
+                    
+                    setStats({
+                        totalTransactions: refs.size,
+                        activeAgents: 5,
+                        successRate: refs.size > 0 ? Math.round((settlements.length / refs.size) * 100) : 0
+                    });
+                    
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Failed to fetch messages:', error);
+                    setLoading(false);
+                }
+            }
+
+            if (loading) {
+                return <div className="loading">Loading dashboard...</div>;
+            }
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>🌾 AgroTrack-Lite v2.0</h1>
+                        <p>Real-time agent monitoring dashboard</p>
+                    </div>
+
+                    <div className="grid">
+                        <div className="card">
+                            <h2>📊 Statistics</h2>
+                            <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px'}}>
+                                <div className="stat">
+                                    <div className="stat-value">{stats.totalTransactions}</div>
+                                    <div className="stat-label">Transactions</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-value">{stats.activeAgents}</div>
+                                    <div className="stat-label">Active Agents</div>
+                                </div>
+                                <div className="stat">
+                                    <div className="stat-value">{stats.successRate}%</div>
+                                    <div className="stat-label">Success Rate</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="card">
+                            <h2>🤖 Agent Status</h2>
+                            <div className="agent-tree">
+                                <div className="agent-node autonomous active">
+                                    <strong>IntentAgent</strong>
+                                    <span className="badge autonomous">AUTONOMOUS</span>
+                                    <div style={{fontSize: '14px', color: '#718096', marginTop: '4px'}}>
+                                        Parsing SMS messages
+                                    </div>
+                                </div>
+                                <div className="agent-node autonomous">
+                                    <strong>RiskAgent</strong>
+                                    <span className="badge autonomous">AUTONOMOUS</span>
+                                    <div style={{fontSize: '14px', color: '#718096', marginTop: '4px'}}>
+                                        Analyzing transaction risk
+                                    </div>
+                                </div>
+                                <div className="agent-node autonomous">
+                                    <strong>MarketAgent</strong>
+                                    <span className="badge autonomous">AUTONOMOUS</span>
+                                    <div style={{fontSize: '14px', color: '#718096', marginTop: '4px'}}>
+                                        Price discovery
+                                    </div>
+                                </div>
+                                <div className="agent-node return-byte">
+                                    <strong>EscrowAgent</strong>
+                                    <span className="badge return-byte">RETURN_BYTE</span>
+                                    <div style={{fontSize: '14px', color: '#718096', marginTop: '4px'}}>
+                                        Token lock operations
+                                    </div>
+                                </div>
+                                <div className="agent-node return-byte">
+                                    <strong>SettlementAgent</strong>
+                                    <span className="badge return-byte">RETURN_BYTE</span>
+                                    <div style={{fontSize: '14px', color: '#718096', marginTop: '4px'}}>
+                                        Payment release
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <h2>📋 Event Stream (Live HCS)</h2>
+                        {messages.length === 0 ? (
+                            <div className="empty">No events yet. Send an SMS to get started!</div>
+                        ) : (
+                            <div>
+                                {messages.slice(0, 20).map((msg, i) => {
+                                    const agentClass = (msg.agent || '').toLowerCase();
+                                    const dataStr = JSON.stringify(msg.data || msg).substring(0, 150);
+                                    
+                                    return (
+                                        <div key={i} className={`event ${agentClass}`}>
+                                            <div className="event-header">
+                                                <span className="event-title">
+                                                    {msg.agent || 'System'}: {msg.event || msg.type}
+                                                </span>
+                                                <span className="event-time">
+                                                    {formatTime(msg.consensus_timestamp)}
+                                                </span>
+                                            </div>
+                                            <div className="event-data">
+                                                {msg.ref && `Ref: ${msg.ref} | `}
+                                                {dataStr}
+                                                {dataStr.length >= 150 && '...'}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<Dashboard />, document.getElementById('root'));
+    </script>
+</body>
+</html>
