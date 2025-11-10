@@ -11,9 +11,9 @@ import {
 import { getHederaClient } from "./client";
 
 const ESCROW_TOKEN_ID = process.env.ESCROW_TOKEN_ID;
-const ESCROW_ACCOUNT_ID = process.env.ESCROW_ACCOUNT_ID!;
-const BUYER_ACCOUNT_ID = process.env.BUYER_ACCOUNT_ID!;
-const FARMER_ACCOUNT_ID = process.env.FARMER_ACCOUNT_ID!;
+const ESCROW_ACCOUNT_ID = process.env.ESCROW_ACCOUNT_ID;
+const BUYER_ACCOUNT_ID = process.env.BUYER_ACCOUNT_ID;
+const FARMER_ACCOUNT_ID = process.env.FARMER_ACCOUNT_ID;
 
 export async function createEscrowToken(): Promise<string> {
   const client = getHederaClient();
@@ -65,9 +65,31 @@ export async function lockEscrow(amount: number): Promise<{
   status: string;
 }> {
   const client = getHederaClient();
-  const tokenId = ESCROW_TOKEN_ID || (await createEscrowToken());
+  
+  // Get or create token ID
+  let tokenId = ESCROW_TOKEN_ID;
+  if (!tokenId) {
+    console.log("⚠️  No ESCROW_TOKEN_ID found, creating new token...");
+    tokenId = await createEscrowToken();
+  }
 
-  // Transfer from buyer to escrow account
+  // Check if we have all required accounts for real transfers
+  const hasRequiredAccounts = ESCROW_ACCOUNT_ID && BUYER_ACCOUNT_ID;
+  
+  if (!hasRequiredAccounts) {
+    // Demo mode: simulate escrow without actual token transfers
+    console.log(`🔒 [DEMO MODE] Simulating escrow lock of ${amount} units of token ${tokenId}`);
+    console.log(`   Missing accounts: ${!ESCROW_ACCOUNT_ID ? 'ESCROW_ACCOUNT_ID ' : ''}${!BUYER_ACCOUNT_ID ? 'BUYER_ACCOUNT_ID' : ''}`);
+    
+    return {
+      txId: `demo-lock-${Date.now()}`,
+      status: "SUCCESS (simulated)",
+    };
+  }
+
+  // Production: Execute actual token transfer
+  console.log(`🔒 Locking ${amount} units of token ${tokenId} in escrow`);
+  
   const transaction = new TransferTransaction()
     .addTokenTransfer(
       TokenId.fromString(tokenId),
@@ -102,10 +124,32 @@ export async function releaseEscrow(
   status: string;
 }> {
   const client = getHederaClient();
-  const tokenId = ESCROW_TOKEN_ID!;
+  
+  // Get token ID
+  const tokenId = ESCROW_TOKEN_ID;
+  if (!tokenId) {
+    throw new Error("No escrow token found. Create an offer first.");
+  }
+  
   const recipient = farmerAccountId || FARMER_ACCOUNT_ID;
 
-  // Transfer from escrow to farmer
+  // Check if we have all required accounts
+  const hasRequiredAccounts = ESCROW_ACCOUNT_ID && recipient;
+  
+  if (!hasRequiredAccounts) {
+    // Demo mode: simulate release
+    console.log(`💰 [DEMO MODE] Simulating escrow release of ${amount} units to farmer`);
+    console.log(`   Missing accounts: ${!ESCROW_ACCOUNT_ID ? 'ESCROW_ACCOUNT_ID ' : ''}${!recipient ? 'FARMER_ACCOUNT_ID' : ''}`);
+    
+    return {
+      txId: `demo-release-${Date.now()}`,
+      status: "SUCCESS (simulated)",
+    };
+  }
+
+  // Production: Execute actual token transfer
+  console.log(`💰 Releasing ${amount} units from escrow to ${recipient}`);
+  
   const transaction = new TransferTransaction()
     .addTokenTransfer(
       TokenId.fromString(tokenId),
