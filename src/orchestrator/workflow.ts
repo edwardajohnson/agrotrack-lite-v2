@@ -55,6 +55,9 @@ export class AgentOrchestrator {
         case "STATUS_CHECK":
           await this.handleStatusCheck(intent, context);
           break;
+        case "FARMER_REGISTER":
+          await this.handleFarmerRegister(intent, context);
+          break;
       }
     } catch (error: any) {
       console.error("Orchestration error:", error);
@@ -62,11 +65,22 @@ export class AgentOrchestrator {
     }
   }
 
+  private async handleFarmerRegister(
+    intent: Intent & { intent: "FARMER_REGISTER" },
+    context: AgentContext
+  ): Promise<void> {
+    console.log(`\n👤 [Orchestrator] Registering farmer: ${intent.farmerName}`);
+    
+    const message = `✅ Welcome ${intent.farmerName}!\n\nYou're registered with AgroTrack.\n\nSend your crop offers:\n• Maize 200kg Kisumu\n• Beans 150kg Eldoret\n\nRef: ${context.ref}`;
+    
+    await sendSms(intent.msisdn, message);
+  }
+
   private async handleOfferCreate(
     intent: Intent & { intent: "OFFER_CREATE" },
     context: AgentContext
   ): Promise<void> {
-    console.log(`\n🔄 [Orchestrator] Running parallel agents for OFFER_CREATE...`);
+    console.log(`\n📄 [Orchestrator] Running parallel agents for OFFER_CREATE...`);
     console.log(`   Ref: ${context.ref}`);
 
     // Parallel execution (key differentiator!)
@@ -98,7 +112,7 @@ export class AgentOrchestrator {
     this.escrowAgent.storeOTP(otp, context.ref!);
 
     // IMPORTANT: Log the OTP to console so you can see it!
-    console.log(`\n🔑 OTP Generated: ${otp} for Ref: ${context.ref}\n`);
+    console.log(`\n🔐 OTP Generated: ${otp} for Ref: ${context.ref}\n`);
 
     // Send offer to farmer
     let message = `✅ Offer created!\n\n`;
@@ -121,10 +135,26 @@ export class AgentOrchestrator {
     intent: Intent & { intent: "OFFER_ACCEPT" },
     context: AgentContext
   ): Promise<void> {
-    console.log(`\n🔐 [Orchestrator] Processing escrow...`);
+    console.log(`\n🔍 [Orchestrator] Processing escrow...`);
     console.log(`   Ref from intent: ${intent.ref}`);
-    console.log(`   OTP: ${intent.otp}`);
+    console.log(`   OTP from SMS: ${intent.otp}`);
     console.log(`   Farmer: ${intent.msisdn}`);
+    
+    // DEBUG: Check what's stored
+    const otpStore = (this.escrowAgent as any).otpStore;
+    console.log(`   🔍 Total OTPs stored: ${otpStore.size}`);
+    console.log(`   🔍 All stored OTPs:`, Array.from(otpStore.keys()));
+    
+    if (otpStore.has(intent.otp)) {
+      const storedData = otpStore.get(intent.otp);
+      console.log(`   ✅ OTP found! Stored data:`, storedData);
+      console.log(`   📝 Expected ref: ${storedData.ref}`);
+      console.log(`   📝 Intent ref: ${intent.ref}`);
+      console.log(`   ⏰ Expires: ${new Date(storedData.expires).toISOString()}`);
+      console.log(`   ⏰ Now: ${new Date().toISOString()}`);
+    } else {
+      console.log(`   ❌ OTP ${intent.otp} NOT FOUND in store!`);
+    }
 
     // If ref is "LATEST", find the most recent offer for this farmer
     if (intent.ref === "LATEST") {
@@ -139,10 +169,6 @@ export class AgentOrchestrator {
       
       console.log(`   📊 Total messages fetched: ${messages.length}`);
       
-      // Debug: log all messages to see structure
-      const parsedIntents = messages.filter(m => m.event === "parsed_intent");
-      console.log(`   📋 Parsed intent messages: ${parsedIntents.length}`);
-      
       // Find the most recent OFFER_CREATE for this farmer
       const farmerOffers = messages.filter(
         (m) => {
@@ -150,16 +176,6 @@ export class AgentOrchestrator {
           const isOfferCreate = m.data?.parsed?.intent === "OFFER_CREATE";
           const matchesFarmer = m.data?.parsed?.msisdn === intent.msisdn;
           const hasRef = m.ref !== undefined && m.ref !== null;
-          
-          if (isIntent) {
-            console.log(`   Checking message:`, {
-              event: m.event,
-              intent: m.data?.parsed?.intent,
-              msisdn: m.data?.parsed?.msisdn,
-              ref: m.ref,
-              matches: isIntent && isOfferCreate && matchesFarmer && hasRef
-            });
-          }
           
           return isIntent && isOfferCreate && matchesFarmer && hasRef;
         }
@@ -173,7 +189,7 @@ export class AgentOrchestrator {
         console.log(`   ✅ Resolved LATEST to ref: ${intent.ref}`);
       } else {
         console.log(`   ❌ No recent offer found for farmer: ${intent.msisdn}`);
-        await sendSms(intent.msisdn, "❌ No recent offer found. Please wait a few seconds and try again.");
+        await sendSms(intent.msisdn, "❌ No recent offer found. Please create an offer first:\n\nExample: Maize 200kg Kisumu");
         return;
       }
     }
@@ -233,15 +249,6 @@ export class AgentOrchestrator {
           const isEscrowCreated = m.event === "escrow_created";
           const matchesFarmer = m.msisdn === intent.msisdn;
           const hasRef = m.ref !== undefined && m.ref !== null;
-          
-          if (isEscrowCreated) {
-            console.log(`   Checking escrow:`, {
-              event: m.event,
-              msisdn: m.msisdn,
-              ref: m.ref,
-              matches: isEscrowCreated && matchesFarmer && hasRef
-            });
-          }
           
           return isEscrowCreated && matchesFarmer && hasRef;
         }
@@ -332,7 +339,7 @@ export class AgentOrchestrator {
     const status = events.includes("settlement_complete")
       ? "Completed ✅"
       : events.includes("escrow_created")
-      ? "Escrow locked 🔐"
+      ? "Escrow locked 🔒"
       : events.includes("parsed_intent")
       ? "Offer pending 📋"
       : "Unknown";
