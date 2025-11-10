@@ -77,7 +77,16 @@ Your task: Parse the SMS into a JSON object. Return ONLY the raw JSON - no markd
 
 INTENT TYPES:
 
-1. OFFER_CREATE - Farmer wants to sell crops
+1. FARMER_REGISTER - Farmer registration
+   Examples:
+   - "REGISTER John Kamau"
+   - "Register Mary Wanjiru"
+   - "REGISTER Alice Mwangi"
+   
+   Response format:
+   {"intent":"FARMER_REGISTER","farmerName":"John Kamau"}
+
+2. OFFER_CREATE - Farmer wants to sell crops
    Examples: 
    - "Maize 200kg Kisumu"
    - "Mahindi 200kg Kisumu kesho"
@@ -86,7 +95,7 @@ INTENT TYPES:
    Response format:
    {"intent":"OFFER_CREATE","crop":"maize","quantityKg":200,"location":"Kisumu"}
 
-2. OFFER_ACCEPT - Farmer accepts an offer
+3. OFFER_ACCEPT - Farmer accepts an offer
    Examples:
    - "YES 483920"
    - "Accept 483920"
@@ -99,7 +108,7 @@ INTENT TYPES:
    If message contains TX followed by numbers, use that as ref:
    {"intent":"OFFER_ACCEPT","ref":"TX816810","otp":"483920"}
 
-3. DELIVERY_CONFIRM - Farmer confirms delivery
+4. DELIVERY_CONFIRM - Farmer confirms delivery
    Examples:
    - "Delivered 198kg Grade B OTP 553904"
    - "Delivered 200kg OTP 123456"
@@ -111,7 +120,7 @@ INTENT TYPES:
    If message contains TX followed by numbers, use that as ref:
    {"intent":"DELIVERY_CONFIRM","ref":"TX816810","weightKg":198,"grade":"B","otp":"553904"}
 
-4. PRICE_QUERY - Farmer asks for market prices
+5. PRICE_QUERY - Farmer asks for market prices
    Examples:
    - "Price for beans Eldoret"
    - "Bei ya mahindi"
@@ -122,7 +131,7 @@ INTENT TYPES:
    
    Note: location is optional for price queries
 
-5. STATUS_CHECK - Check transaction status
+6. STATUS_CHECK - Check transaction status
    Examples:
    - "Status TX123456"
    - "Hali TX816810"
