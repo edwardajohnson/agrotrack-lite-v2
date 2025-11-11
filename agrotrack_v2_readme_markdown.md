@@ -8,6 +8,20 @@
 
 **AgroTrack-Lite v2.0** is a production-ready implementation of an SMS-first agricultural marketplace that uses **autonomous AI agents** to coordinate transactions on Hedera. Farmers can create offers, accept deals, and receive payments using only basic feature phones—no smartphone or crypto wallet required.
 
+
+## 🎯 MVP Feature Selection
+
+We built the minimum to prove farmers can transact via SMS with blockchain escrow.
+
+**See detailed justification:** [docs/MVP_FEATURES.md](./docs/MVP_FEATURES.md)
+
+**TL;DR:** Every feature solves a specific barrier:
+- SMS → 70% accessibility (feature phones)
+- AI parsing → Natural interaction (no training)
+- Risk scoring → Trust & fraud prevention  
+- HTS escrow → Financial inclusion (65% unbanked)
+- Dashboard → Operator efficiency
+
 ---
 
 ## 🎯 Key Features
