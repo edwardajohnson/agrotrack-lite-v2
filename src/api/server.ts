@@ -38,159 +38,229 @@ app.get("/logs", (_req: Request, res: Response) => {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0a0a0a;
-      color: #00ff00;
-      font-family: 'Courier New', Monaco, monospace;
-      font-size: 13px;
-      line-height: 1.4;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
     }
     .header {
-      background: #1a1a1a;
-      border-bottom: 2px solid #00ff00;
-      padding: 20px;
+      background: #161b22;
+      border-bottom: 2px solid #30363d;
+      padding: 24px;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     h1 {
-      color: #00ff00;
-      font-size: 24px;
-      margin-bottom: 10px;
-      text-shadow: 0 0 10px #00ff00;
+      color: #e6edf3;
+      font-size: 28px;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
     .subtitle {
-      color: #666;
-      font-size: 14px;
+      color: #8b949e;
+      font-size: 15px;
     }
     .stats {
-      background: #0f0f0f;
-      padding: 15px 20px;
+      background: #161b22;
+      padding: 16px 24px;
       margin: 0;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #21262d;
       display: flex;
-      gap: 30px;
+      gap: 32px;
       flex-wrap: wrap;
       align-items: center;
     }
     .stat-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
     .stat-label {
-      color: #666;
-      font-size: 11px;
+      color: #8b949e;
+      font-size: 12px;
       text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     .stat-value {
-      color: #00ff00;
-      font-weight: bold;
-      font-size: 16px;
+      color: #e6edf3;
+      font-weight: 700;
+      font-size: 18px;
     }
     .refresh {
       position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background: #00ff00;
-      color: #000;
+      top: 24px;
+      right: 24px;
+      padding: 12px 24px;
+      background: #238636;
+      color: #ffffff;
       border: none;
       cursor: pointer;
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
+      font-family: inherit;
+      font-weight: 600;
       font-size: 14px;
-      border-radius: 4px;
+      border-radius: 6px;
       z-index: 101;
       transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     .refresh:hover {
-      background: #00cc00;
-      transform: scale(1.05);
+      background: #2ea043;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
     .logs-container {
-      padding: 20px;
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
     }
     .log-entry {
-      padding: 12px;
-      margin: 6px 0;
+      padding: 16px;
+      margin: 8px 0;
       border-left: 4px solid;
-      background: #0a0a0a;
-      border-radius: 2px;
-      transition: background 0.2s;
+      background: #0d1117;
+      border-radius: 6px;
+      transition: all 0.2s;
+      border: 1px solid #21262d;
     }
     .log-entry:hover {
-      background: #151515;
+      background: #161b22;
+      border-color: #30363d;
+      transform: translateX(2px);
     }
-    .log-entry.info { border-left-color: #00ff00; }
-    .log-entry.success { border-left-color: #00ffff; }
+    
+    /* Log level colors - colorblind friendly */
+    .log-entry.info { 
+      border-left-color: #58a6ff;
+    }
+    .log-entry.success { 
+      border-left-color: #3fb950;
+    }
     .log-entry.error { 
-      border-left-color: #ff0000; 
-      background: #1a0000;
+      border-left-color: #f85149;
+      background: #1c1011;
+      border-color: #da3633;
+    }
+    .log-entry.error:hover {
+      background: #2d1214;
     }
     .log-entry.debug { 
-      border-left-color: #888; 
-      color: #888;
+      border-left-color: #6e7681;
+      opacity: 0.7;
     }
+    
     .log-header {
       display: flex;
-      gap: 15px;
-      margin-bottom: 6px;
+      gap: 12px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
+      align-items: center;
     }
     .timestamp {
-      color: #666;
-      font-size: 11px;
+      color: #6e7681;
+      font-size: 12px;
+      font-family: 'SF Mono', monospace;
     }
     .level {
-      font-weight: bold;
+      font-weight: 700;
       font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 3px;
+      padding: 4px 10px;
+      border-radius: 4px;
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .level.info { background: #003300; color: #00ff00; }
-    .level.success { background: #003333; color: #00ffff; }
-    .level.error { background: #330000; color: #ff6b6b; }
-    .level.debug { background: #1a1a1a; color: #888; }
+    .level.info { 
+      background: #1f2937;
+      color: #58a6ff;
+    }
+    .level.success { 
+      background: #0d2818;
+      color: #3fb950;
+    }
+    .level.error { 
+      background: #2d1214;
+      color: #f85149;
+    }
+    .level.debug { 
+      background: #21262d;
+      color: #6e7681;
+    }
     .agent {
-      background: #1a1a1a;
-      color: #ffaa00;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-size: 11px;
+      background: #21262d;
+      color: #ffa657;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
     }
     .ref {
-      background: #1a1a1a;
-      color: #00aaff;
-      padding: 2px 8px;
-      border-radius: 3px;
-      font-size: 11px;
+      background: #21262d;
+      color: #79c0ff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
     }
     .message {
-      color: #00ff00;
-      margin-top: 4px;
-      font-size: 13px;
+      color: #e6edf3;
+      font-size: 14px;
+      line-height: 1.6;
+      font-weight: 400;
     }
     .log-entry.error .message {
-      color: #ff6b6b;
+      color: #ffa198;
+      font-weight: 500;
     }
     .log-entry.debug .message {
-      color: #888;
+      color: #8b949e;
     }
     .data {
-      margin-top: 8px;
-      padding: 10px;
-      background: #000;
-      border: 1px solid #222;
-      border-radius: 3px;
-      font-size: 11px;
-      color: #666;
+      margin-top: 12px;
+      padding: 12px;
+      background: #010409;
+      border: 1px solid #21262d;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #8b949e;
       overflow-x: auto;
     }
     .data pre {
       margin: 0;
       white-space: pre-wrap;
       word-wrap: break-word;
+      font-family: 'SF Mono', monospace;
+    }
+    
+    /* Enhanced stats colors */
+    .stat-value[style*="00ff00"] { color: #3fb950 !important; }
+    .stat-value[style*="00ffff"] { color: #79c0ff !important; }
+    .stat-value[style*="ff6b6b"] { color: #f85149 !important; }
+    .stat-value[style*="888"] { color: #6e7681 !important; }
+    
+    @media (max-width: 768px) {
+      .header { padding: 16px; }
+      h1 { font-size: 22px; }
+      .stats { padding: 12px 16px; gap: 16px; }
+      .logs-container { padding: 12px; }
+      .refresh { 
+        top: 12px; 
+        right: 12px; 
+        padding: 10px 16px; 
+        font-size: 13px; 
+      }
+      .log-entry { padding: 12px; }
+    }
+    
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+    
+    /* Selection color */
+    ::selection {
+      background: #58a6ff;
+      color: #ffffff;
     }
   </style>
   <script>
@@ -200,47 +270,6 @@ app.get("/logs", (_req: Request, res: Response) => {
     });
   </script>
 </head>
-<body>
-  <button class="refresh" onclick="location.reload()">↻ Refresh Now</button>
-  
-  <div class="header">
-    <h1>🌾 AgroTrack-Lite System Logs</h1>
-    <div class="subtitle">Real-time monitoring • Auto-refresh: 5s</div>
-  </div>
-  
-  <div class="stats">
-    <div class="stat-item">
-      <span class="stat-label">Total:</span>
-      <span class="stat-value">${stats.total}</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">Info:</span>
-      <span class="stat-value" style="color: #00ff00">${stats.byLevel.info}</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">Success:</span>
-      <span class="stat-value" style="color: #00ffff">${stats.byLevel.success}</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">Errors:</span>
-      <span class="stat-value" style="color: #ff6b6b">${stats.byLevel.error}</span>
-    </div>
-  </div>
-  
-  <div class="logs-container">
-    ${recentLogs.map(logEntry => `
-      <div class="log-entry ${logEntry.level}">
-        <div class="log-header">
-          <span class="timestamp">${logEntry.timestamp}</span>
-          <span class="level ${logEntry.level}">${logEntry.level}</span>
-          ${logEntry.agent ? `<span class="agent">${logEntry.agent}</span>` : ''}
-          ${logEntry.ref ? `<span class="ref">${logEntry.ref}</span>` : ''}
-        </div>
-        <div class="message">${logEntry.message}</div>
-        ${logEntry.data ? `<div class="data"><pre>${JSON.stringify(logEntry.data, null, 2)}</pre></div>` : ''}
-      </div>
-    `).join('')}
-  </div>
 </body>
 </html>
   `;
