@@ -270,6 +270,51 @@ app.get("/logs", (_req: Request, res: Response) => {
     });
   </script>
 </head>
+<body>
+  <button class="refresh" onclick="location.reload()">↻ Refresh Now</button>
+  
+  <div class="header">
+    <h1>🌾 AgroTrack-Lite System Logs</h1>
+    <div class="subtitle">Real-time monitoring • Auto-refresh: 5s</div>
+  </div>
+  
+  <div class="stats">
+    <div class="stat-item">
+      <span class="stat-label">Total:</span>
+      <span class="stat-value">${stats.total}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Info:</span>
+      <span class="stat-value" style="color: #58a6ff">${stats.byLevel.info}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Success:</span>
+      <span class="stat-value" style="color: #3fb950">${stats.byLevel.success}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Errors:</span>
+      <span class="stat-value" style="color: #f85149">${stats.byLevel.error}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">Debug:</span>
+      <span class="stat-value" style="color: #6e7681">${stats.byLevel.debug}</span>
+    </div>
+  </div>
+  
+  <div class="logs-container">
+    ${recentLogs.map(logEntry => `
+      <div class="log-entry ${logEntry.level}">
+        <div class="log-header">
+          <span class="timestamp">${logEntry.timestamp}</span>
+          <span class="level ${logEntry.level}">${logEntry.level}</span>
+          ${logEntry.agent ? `<span class="agent">${logEntry.agent}</span>` : ''}
+          ${logEntry.ref ? `<span class="ref">${logEntry.ref}</span>` : ''}
+        </div>
+        <div class="message">${logEntry.message}</div>
+        ${logEntry.data ? `<div class="data"><pre>${JSON.stringify(logEntry.data, null, 2)}</pre></div>` : ''}
+      </div>
+    `).join('')}
+  </div>
 </body>
 </html>
   `;
