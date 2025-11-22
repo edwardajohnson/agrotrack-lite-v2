@@ -24,7 +24,7 @@ We built the minimum to prove farmers can transact via SMS with blockchain escro
 
 ---
 
-## 🎯 Key Features
+## 🎯 Key Features - I am really pleased with these features built in and look forward to adding more
 
 ### Multi-Agent Architecture
 - **5 Autonomous Agents** working in parallel
