@@ -320,18 +320,7 @@ Response: { status: "ok", topicId: "0.0.xxxxx" }
 
 ## 🐳 Deployment
 
-### Docker
-
-```bash
-# Build and run
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop
-docker-compose down
-```
+### Docker  (NOT YET COMPLETE)
 
 ### Railway / Render
 
@@ -346,34 +335,34 @@ docker-compose down
 
 ## 🎓 Judging Criteria Alignment
 
-### Hedera Agent Kit Usage ⭐⭐⭐⭐⭐
+### Hedera Agent Kit Usage 
 - ✅ Uses 5 distinct agents with proper execution modes
 - ✅ Demonstrates AUTONOMOUS vs RETURN_BYTE patterns
 - ✅ Parallel agent execution (Risk + Market)
 - ✅ Multi-agent decision trees
 - ✅ Proper logging and observability
 
-### Hedera Integration ⭐⭐⭐⭐⭐
+### Hedera Integration 
 - ✅ HCS for immutable audit trail
 - ✅ HTS for token-based escrow
 - ✅ Mirror Node for historical queries
 - ✅ JSON-RPC Relay ready for HSCS
 
-### Innovation ⭐⭐⭐⭐⭐
+### Innovation 
 - ✅ SMS-first (no wallet app needed)
 - ✅ Custodial design for accessibility
 - ✅ Natural language processing
 - ✅ Risk-based autonomous decisions
 - ✅ Real-time dashboard visualization
 
-### Technical Quality ⭐⭐⭐⭐⭐
+### Technical Quality 
 - ✅ TypeScript with strict typing
 - ✅ Modular agent architecture
 - ✅ Comprehensive error handling
 - ✅ Docker deployment ready
 - ✅ Complete documentation
 
-### Real-World Applicability ⭐⭐⭐⭐⭐
+### Real-World Applicability 
 - ✅ Addresses actual farmer pain points
 - ✅ Works with existing infrastructure (SMS)
 - ✅ Scalable design (custodial → non-custodial path)
@@ -381,7 +370,7 @@ docker-compose down
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap (Note time line could extend fdepending on funding )
 
 ### Phase 1 (Current)
 - [x] Multi-agent orchestration
@@ -440,11 +429,11 @@ MIT License - see [LICENSE](LICENSE) for details
 - **Hedera** for the Agent Kit and testnet infrastructure
 - **OpenAI** for LangChain integration
 - **Africa's Talking** for SMS gateway support
-- **Hedera Africa Hackathon** community
+- **Twilio** for fast SMS gateway support
 
 ---
 
-## 📚 Resources
+## 📚 Resources - subject to change
 
 - [Hedera Documentation](https://docs.hedera.com)
 - [Agent Kit Reference](https://docs.hedera.com/hedera/sdks-and-apis/sdks)
